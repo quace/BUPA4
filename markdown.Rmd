@@ -6,6 +6,17 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(bupaR)
+library(dplyr)
+library(readr)
+
+
+data <- read_csv2("Hospital Billing - Event Log.csv")
+data$activityID <- seq.int(nrow(data))
+Sys.setenv(TZ='UTC')
+Sys.setlocale("LC_ALL","English")
+Sys.setenv(LANG = "en")
+gsub(".000", "", data$`Complete Timestamp`)
+data$`Complete Timestamp` <- as.POSIXct("Complete Timestamp", format = "%Y/%m/%d %H:%M:%S" , tz = "UTC")
 ```
 
 ## R Markdown
@@ -15,8 +26,7 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r}
-data <- read.csv("Hospital Billing - Event Log.csv", sep = ";")
-data <- eventlog(data)
+log <- eventlog(data, case_id = "Case ID", activity_id = "Activity", activity_instance_id = "activityID", lifecycle_id = "lifecycle:transition", timestamp = "Complete Timestamp", resource_id = "Resource")
 ```
 
 ## Including Plots
@@ -24,7 +34,7 @@ data <- eventlog(data)
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-case_id(data)
+log %>% process_map()
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
